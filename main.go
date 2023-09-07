@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 func main() {
-	fmt.Println("test tests")
+	server := NewAPIServer(":3000")
+	if err := server.Run(); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Hi,Server")
 }
