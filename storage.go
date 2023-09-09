@@ -7,7 +7,8 @@ import (
 )
 
 type Storage interface {
-	CreateTeam(*TeamRequest) error
+	CreateTeam(*Team) error
+	GetAllTeams() ([]Team, error)
 }
 
 type PostgresStore struct {
@@ -19,7 +20,7 @@ func NewPostgresStore() (*PostgresStore, error) {
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
-	}	
+	}
 	if err := db.Ping(); err != nil {
 		return nil, err
 	}
@@ -42,11 +43,35 @@ func (s *PostgresStore) Init() error {
 	return nil
 }
 
-func (s *PostgresStore) CreateTeam(req *TeamRequest) error {
+func (s *PostgresStore) CreateTeam(req *Team) error {
 	query := "INSERT INTO teams(team_name,gender) VALUES($1,$2);"
 	_, err := s.db.Exec(query, req.TeamName, req.Gender)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+func (s *PostgresStore) GetAllTeams() ([]Team, error) {
+	query := "SELECT id,team_name,gender from teams;"
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var teams []Team
+
+	for rows.Next() {
+		var team Team
+		if err := rows.Scan(&team.ID, &team.TeamName, &team.Gender); err != nil {
+			return nil, err
+		}
+		teams = append(teams, team)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return teams, nil
 }

@@ -1,6 +1,6 @@
 package main
 
-type TeamRequest struct {
+type Team struct {
 	ID       int    `json:"id"`
 	TeamName string `json:"teamName"`
 	Gender   string `json:"gender"`
