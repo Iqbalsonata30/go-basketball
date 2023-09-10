@@ -8,6 +8,10 @@ import (
 )
 
 type Storage interface {
+	TeamStorage
+}
+
+type TeamStorage interface {
 	CreateTeam(*Team) error
 	GetAllTeams() ([]Team, error)
 	GetTeamById(int) (*Team, error)
@@ -83,7 +87,7 @@ func (s *PostgresStore) GetTeamById(id int) (*Team, error) {
 	query := "SELECT id,team_name,gender from teams where ID = $1;"
 	result := s.db.QueryRow(query, id)
 	var team Team
-	if err := result.Scan(&team.ID, &team.Gender, &team.TeamName); err != nil {
+	if err := result.Scan(&team.ID, &team.TeamName, &team.Gender); err != nil {
 		return nil, fmt.Errorf("team id's %d is not found ", id)
 	}
 	if err := result.Err(); err != nil {
