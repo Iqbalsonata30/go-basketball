@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/iqbalsonata30/go-basketball/helper"
 )
 
 type APIServer struct {
@@ -54,39 +55,33 @@ func (s *APIServer) handleAPIById(w http.ResponseWriter, r *http.Request) error 
 
 func (s *APIServer) GetAllTeams(w http.ResponseWriter, r *http.Request) error {
 	teams, err := s.storage.GetAllTeams()
-	if err != nil {
-		return err
-	}
+	helper.CheckError(err)
 	return JSONEncode(w, http.StatusOK, teams)
 
 }
 
 func (s *APIServer) CreateTeam(w http.ResponseWriter, r *http.Request) error {
 	req := new(Team)
-	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		return err
-	}
-	err := s.storage.CreateTeam(req)
-	if err != nil {
-		return err
-	}
-	return JSONEncode(w, http.StatusCreated, "team has been created succesfully")
+
+	err := json.NewDecoder(r.Body).Decode(req)
+	helper.CheckError(err)
+
+	err = s.storage.CreateTeam(req)
+	helper.CheckError(err)
+
+	return JSONEncode(w, http.StatusCreated, helper.WriteMessageAPI(http.StatusCreated, "Team has been created sucesfully."))
 }
 
 func (s *APIServer) GetTeamById(w http.ResponseWriter, r *http.Request, id int) error {
 	team, err := s.storage.GetTeamById(id)
-	if err != nil {
-		return err
-	}
+	helper.CheckError(err)
 	return JSONEncode(w, http.StatusOK, team)
 }
 
 func (s *APIServer) DeleteTeam(w http.ResponseWriter, r *http.Request, id int) error {
 	err := s.storage.DeleteTeam(id)
-	if err != nil {
-		return err
-	}
-	return JSONEncode(w, http.StatusOK, map[string]string{"message": "Team has been deleted."})
+	helper.CheckError(err)
+	return JSONEncode(w, http.StatusOK, helper.WriteMessageAPI(http.StatusOK, "Team has been deleted sucesfully.he"))
 }
 
 func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {

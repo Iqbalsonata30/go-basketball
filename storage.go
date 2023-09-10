@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/iqbalsonata30/go-basketball/helper"
 	_ "github.com/lib/pq"
 )
 
@@ -44,26 +45,22 @@ func (s *PostgresStore) Init() error {
 		gender VARCHAR(50) NOT NULL
 	);`
 	_, err := s.db.Exec(query)
-	if err != nil {
-		return err
-	}
+	helper.CheckError(err)
 	return nil
 }
 
 func (s *PostgresStore) CreateTeam(req *Team) error {
 	query := "INSERT INTO teams(team_name,gender) VALUES($1,$2);"
 	_, err := s.db.Exec(query, req.TeamName, req.Gender)
-	if err != nil {
-		return err
-	}
+	helper.CheckError(err)
+
 	return nil
 }
+
 func (s *PostgresStore) GetAllTeams() ([]Team, error) {
 	query := "SELECT id,team_name,gender from teams;"
 	rows, err := s.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
+	helper.CheckError(err)
 	defer rows.Close()
 
 	var teams []Team
@@ -99,9 +96,6 @@ func (s *PostgresStore) GetTeamById(id int) (*Team, error) {
 func (s *PostgresStore) DeleteTeam(id int) error {
 	query := "DELETE FROM teams where id = $1;"
 	_, err := s.db.Exec(query, id)
-	if err != nil {
-		return err
-	}
+	helper.CheckError(err)
 	return nil
-
 }
