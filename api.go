@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -38,7 +37,7 @@ func (s *APIServer) handleAPI(w http.ResponseWriter, r *http.Request) error {
 	if r.Method == "POST" {
 		return s.CreateTeam(w, r)
 	}
-	return fmt.Errorf("method %s is not allowed", r.Method)
+	return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
 }
 
 func (s *APIServer) handleAPIById(w http.ResponseWriter, r *http.Request) error {
@@ -47,7 +46,7 @@ func (s *APIServer) handleAPIById(w http.ResponseWriter, r *http.Request) error 
 	if r.Method == "GET" {
 		return s.GetTeamById(w, r, teamID)
 	}
-	return fmt.Errorf("team's id is not found : %d", teamID)
+	return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
 }
 
 func (s *APIServer) GetAllTeams(w http.ResponseWriter, r *http.Request) error {
@@ -81,7 +80,7 @@ func (s *APIServer) GetTeamById(w http.ResponseWriter, r *http.Request, id int) 
 
 func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(statusCode)
 	return json.NewEncoder(w).Encode(v)
 }
 
