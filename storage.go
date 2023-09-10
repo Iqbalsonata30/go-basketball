@@ -11,6 +11,7 @@ type Storage interface {
 	CreateTeam(*Team) error
 	GetAllTeams() ([]Team, error)
 	GetTeamById(int) (*Team, error)
+	DeleteTeam(int) error
 }
 
 type PostgresStore struct {
@@ -89,4 +90,14 @@ func (s *PostgresStore) GetTeamById(id int) (*Team, error) {
 		return nil, err
 	}
 	return &team, nil
+}
+
+func (s *PostgresStore) DeleteTeam(id int) error {
+	query := "DELETE FROM teams where id = $1;"
+	_, err := s.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	return nil
+
 }

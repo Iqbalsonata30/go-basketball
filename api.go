@@ -46,6 +46,9 @@ func (s *APIServer) handleAPIById(w http.ResponseWriter, r *http.Request) error 
 	if r.Method == "GET" {
 		return s.GetTeamById(w, r, teamID)
 	}
+	if r.Method == "DELETE" {
+		return s.DeleteTeam(w, r, teamID)
+	}
 	return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
 }
 
@@ -76,6 +79,14 @@ func (s *APIServer) GetTeamById(w http.ResponseWriter, r *http.Request, id int) 
 		return err
 	}
 	return JSONEncode(w, http.StatusOK, team)
+}
+
+func (s *APIServer) DeleteTeam(w http.ResponseWriter, r *http.Request, id int) error {
+	err := s.storage.DeleteTeam(id)
+	if err != nil {
+		return err
+	}
+	return JSONEncode(w, http.StatusOK, map[string]string{"message": "Team has been deleted."})
 }
 
 func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {
