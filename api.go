@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -24,6 +25,7 @@ func NewAPIServer(listenAddr string, store Storage) *APIServer {
 func (s *APIServer) Run() {
 	router := mux.NewRouter()
 	router.HandleFunc("/teams", HandleFunc(s.handleAPI))
+	router.HandleFunc("/teams/{id}", HandleFunc(s.handleAPIById))
 	log.Printf("server is running on port %v\n", s.address)
 
 	http.ListenAndServe(s.address, router)
@@ -37,6 +39,15 @@ func (s *APIServer) handleAPI(w http.ResponseWriter, r *http.Request) error {
 		return s.CreateTeam(w, r)
 	}
 	return fmt.Errorf("method %s is not allowed", r.Method)
+}
+
+func (s *APIServer) handleAPIById(w http.ResponseWriter, r *http.Request) error {
+	id := mux.Vars(r)["id"]
+	teamID, _ := strconv.Atoi(id)
+	if r.Method == "GET" {
+		return s.GetTeamById(w, r, teamID)
+	}
+	return fmt.Errorf("team's id is not found : %d", teamID)
 }
 
 func (s *APIServer) GetAllTeams(w http.ResponseWriter, r *http.Request) error {
@@ -58,6 +69,14 @@ func (s *APIServer) CreateTeam(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return JSONEncode(w, http.StatusCreated, "team has been created succesfully")
+}
+
+func (s *APIServer) GetTeamById(w http.ResponseWriter, r *http.Request, id int) error {
+	team, err := s.storage.GetTeamById(id)
+	if err != nil {
+		return err
+	}
+	return JSONEncode(w, http.StatusOK, team)
 }
 
 func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {
