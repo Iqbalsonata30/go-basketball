@@ -50,12 +50,17 @@ func (s *APIServer) handleAPIById(w http.ResponseWriter, r *http.Request) error 
 	if r.Method == "DELETE" {
 		return s.DeleteTeam(w, r, teamID)
 	}
+	if r.Method == "PUT" {
+		return s.UpdateTeam(w, r, teamID)
+	}
 	return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
 }
 
 func (s *APIServer) GetAllTeams(w http.ResponseWriter, r *http.Request) error {
 	teams, err := s.storage.GetAllTeams()
-	helper.CheckError(err)
+	if err != nil {
+		return err
+	}
 	return JSONEncode(w, http.StatusOK, teams)
 
 }
@@ -63,25 +68,41 @@ func (s *APIServer) GetAllTeams(w http.ResponseWriter, r *http.Request) error {
 func (s *APIServer) CreateTeam(w http.ResponseWriter, r *http.Request) error {
 	req := new(Team)
 
-	err := json.NewDecoder(r.Body).Decode(req)
-	helper.CheckError(err)
-
-	err = s.storage.CreateTeam(req)
-	helper.CheckError(err)
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		return err
+	}
+	if err := s.storage.CreateTeam(req); err != nil {
+		return err
+	}
 
 	return JSONEncode(w, http.StatusCreated, helper.WriteMessageAPI(http.StatusCreated, "Team has been created sucesfully."))
 }
 
 func (s *APIServer) GetTeamById(w http.ResponseWriter, r *http.Request, id int) error {
 	team, err := s.storage.GetTeamById(id)
-	helper.CheckError(err)
+	if err != nil {
+		return err
+	}
 	return JSONEncode(w, http.StatusOK, team)
 }
 
 func (s *APIServer) DeleteTeam(w http.ResponseWriter, r *http.Request, id int) error {
 	err := s.storage.DeleteTeam(id)
-	helper.CheckError(err)
+	if err != nil {
+		return err
+	}
 	return JSONEncode(w, http.StatusOK, helper.WriteMessageAPI(http.StatusOK, "Team has been deleted sucesfully.he"))
+}
+
+func (s *APIServer) UpdateTeam(w http.ResponseWriter, r *http.Request, id int) error {
+	req := new(Team)
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		return err
+	}
+	if err := s.storage.UpdateTeam(req, id); err != nil {
+		return err
+	}
+	return JSONEncode(w, http.StatusOK, helper.WriteMessageAPI(http.StatusOK, "Team has been updated sucesfully."))
 }
 
 func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {
@@ -93,7 +114,7 @@ func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {
 type ApiFunc func(http.ResponseWriter, *http.Request) error
 
 type ApiError struct {
-	Error string
+	Error string `json:"error"`
 }
 
 func HandleFunc(f ApiFunc) http.HandlerFunc {
