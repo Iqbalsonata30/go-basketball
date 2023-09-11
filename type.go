@@ -5,3 +5,6 @@ type Team struct {
 	TeamName string `json:"teamName"`
 	Gender   string `json:"gender"`
 }
+type ApiError struct {
+	Error string `json:"error"`
+}

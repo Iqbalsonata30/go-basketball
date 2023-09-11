@@ -113,10 +113,6 @@ func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {
 
 type ApiFunc func(http.ResponseWriter, *http.Request) error
 
-type ApiError struct {
-	Error string `json:"error"`
-}
-
 func HandleFunc(f ApiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := f(w, r); err != nil {
