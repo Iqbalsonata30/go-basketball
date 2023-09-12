@@ -39,17 +39,44 @@ func NewPostgresStore() (*PostgresStore, error) {
 }
 
 func (s *PostgresStore) Init() error {
+	if err := s.createTableTeams(); err != nil {
+		return err
+	}
+	if err := s.createTablePlayers(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *PostgresStore) createTableTeams() error {
 	query :=
 		`CREATE TABLE IF NOT EXISTS teams(
-		id SERIAL PRIMARY KEY,
-		team_name VARCHAR(100) NOT NULL,
-		gender VARCHAR(50) NOT NULL
+ 		id SERIAL PRIMARY KEY,
+ 		team_name VARCHAR(100) NOT NULL,
+ 		gender VARCHAR(50) NOT NULL
+ 	);`
+	_, err := s.db.Exec(query)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *PostgresStore) createTablePlayers() error {
+	query := `CREATE TABLE IF NOT EXISTS players(
+		id uuid PRIMARY KEY,
+		team_id integer REFERENCES teams(id) ON DELETE CASCADE,
+		name varchar(150) NOT NULL,
+		number integer NOT NULL,
+		height integer NOT NULL,
+		birthdate date NOT NULL
 	);`
 	_, err := s.db.Exec(query)
 	if err != nil {
 		return err
 	}
 	return nil
+
 }
 
 func (s *PostgresStore) CreateTeam(req *Team) error {
