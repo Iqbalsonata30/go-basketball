@@ -60,6 +60,8 @@ func (s *APIServer) handleTeamAPIById(w http.ResponseWriter, r *http.Request) er
 
 func (s *APIServer) handlePlayerAPI(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
+	case "GET":
+		return s.FindAllPlayers(w, r)
 	case "POST":
 		return s.CreatePlayer(w, r)
 	default:
@@ -126,6 +128,14 @@ func (s *APIServer) CreatePlayer(w http.ResponseWriter, r *http.Request) error {
 	}
 	return JSONEncode(w, http.StatusCreated, helper.WriteMessageAPI(http.StatusCreated, "Player has been created succesfully."))
 
+}
+
+func (s *APIServer) FindAllPlayers(w http.ResponseWriter, r *http.Request) error {
+	players, err := s.storage.FindAllPlayers()
+	if err != nil {
+		return err
+	}
+	return JSONEncode(w, http.StatusOK, players)
 }
 
 func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {

@@ -24,6 +24,7 @@ type TeamStorage interface {
 
 type PlayerStorage interface {
 	CreatePlayer(*Player) error
+	FindAllPlayers() ([]Player, error)
 }
 
 type PostgresStore struct {
@@ -74,8 +75,7 @@ func (s *PostgresStore) createTablePlayers() error {
 		team_id integer REFERENCES teams(id) ON DELETE CASCADE,
 		name varchar(150) NOT NULL,
 		number integer NOT NULL,
-		height integer NOT NULL,
-		birthdate date NOT NULL
+		height integer NOT NULL
 	);`
 	_, err := s.db.Exec(query)
 	if err != nil {
@@ -170,10 +170,37 @@ func (s *PostgresStore) UpdateTeam(req *Team, id int) error {
 }
 
 func (s *PostgresStore) CreatePlayer(req *Player) error {
-	query := "INSERT INTO players(id,team_id,name,number,height,birthdate) VALUES ($1,$2,$3,$4,$5,$6);"
-	_, err := s.db.Exec(query, uuid.New(), req.TeamID, req.Name, req.Number, req.Height, req.Birthdate.String())
+	if err := helper.Required(req.TeamID, req.Name, req.Number, req.Height); err != nil {
+		return err
+	}
+	query := "INSERT INTO players(id,team_id,name,number,height) VALUES ($1,$2,$3,$4,$5);"
+	_, err := s.db.Exec(query, uuid.New(), req.TeamID, req.Name, req.Number, req.Height)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *PostgresStore) FindAllPlayers() ([]Player, error) {
+	query := "SELECT id,team_id,name,number,height from players"
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var players []Player
+	for rows.Next() {
+		var p Player
+		err := rows.Scan(&p.ID, &p.TeamID, &p.Name, &p.Number, &p.Height)
+		if err != nil {
+			return nil, err
+		}
+		players = append(players, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return players, err
 }

@@ -9,7 +9,7 @@ func WriteMessageAPI(code int, message string) map[string]any {
 	}
 }
 
-func Required(datas ...string) error {
+func Required(datas ...any) error {
 	for _, data := range datas {
 		if data == "" {
 			return fmt.Errorf("you've not fulfilled the required data")

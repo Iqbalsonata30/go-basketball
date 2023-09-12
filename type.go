@@ -1,7 +1,6 @@
 package main
 
 import (
-	"cloud.google.com/go/civil"
 	"github.com/google/uuid"
 )
 
@@ -12,12 +11,11 @@ type Team struct {
 }
 
 type Player struct {
-	ID        uuid.UUID  `json:"id"`
-	TeamID    int        `json:"teamID"`
-	Name      string     `json:"name"`
-	Number    int        `json:"number"`
-	Height    int        `json:"height"`
-	Birthdate civil.Date `json:"birthdate"`
+	ID     uuid.UUID `json:"id"`
+	TeamID int       `json:"teamID"`
+	Name   string    `json:"name"`
+	Number int       `json:"number"`
+	Height int       `json:"height"`
 }
 
 type ApiError struct {
