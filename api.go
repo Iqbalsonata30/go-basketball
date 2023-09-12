@@ -24,14 +24,16 @@ func NewAPIServer(listenAddr string, store Storage) *APIServer {
 
 func (s *APIServer) Run() {
 	router := mux.NewRouter()
-	router.HandleFunc("/teams", HandleFunc(s.handleAPI))
-	router.HandleFunc("/teams/{id}", HandleFunc(s.handleAPIById))
-	log.Printf("server is running on port %v\n", s.address)
 
+	router.HandleFunc("/teams", HandleFunc(s.handleTeamAPI))
+	router.HandleFunc("/teams/{id}", HandleFunc(s.handleTeamAPIById))
+	router.HandleFunc("/players", HandleFunc(s.handlePlayerAPI))
+
+	log.Printf("server is running on port %v\n", s.address)
 	http.ListenAndServe(s.address, router)
 }
 
-func (s *APIServer) handleAPI(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) handleTeamAPI(w http.ResponseWriter, r *http.Request) error {
 	if r.Method == "GET" {
 		return s.FindAllTeams(w, r)
 	}
@@ -41,7 +43,7 @@ func (s *APIServer) handleAPI(w http.ResponseWriter, r *http.Request) error {
 	return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
 }
 
-func (s *APIServer) handleAPIById(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) handleTeamAPIById(w http.ResponseWriter, r *http.Request) error {
 	id := mux.Vars(r)["id"]
 	teamID, _ := strconv.Atoi(id)
 	if r.Method == "GET" {
@@ -54,6 +56,15 @@ func (s *APIServer) handleAPIById(w http.ResponseWriter, r *http.Request) error 
 		return s.UpdateTeam(w, r, teamID)
 	}
 	return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
+}
+
+func (s *APIServer) handlePlayerAPI(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case "POST":
+		return s.CreatePlayer(w, r)
+	default:
+		return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
+	}
 }
 
 func (s *APIServer) FindAllTeams(w http.ResponseWriter, r *http.Request) error {
@@ -103,6 +114,18 @@ func (s *APIServer) UpdateTeam(w http.ResponseWriter, r *http.Request, id int) e
 		return err
 	}
 	return JSONEncode(w, http.StatusOK, helper.WriteMessageAPI(http.StatusOK, "Team has been updated sucesfully."))
+}
+
+func (s *APIServer) CreatePlayer(w http.ResponseWriter, r *http.Request) error {
+	req := new(Player)
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		return err
+	}
+	if err := s.storage.CreatePlayer(req); err != nil {
+		return err
+	}
+	return JSONEncode(w, http.StatusCreated, helper.WriteMessageAPI(http.StatusCreated, "Player has been created succesfully."))
+
 }
 
 func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {

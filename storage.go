@@ -4,12 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/iqbalsonata30/go-basketball/helper"
 	_ "github.com/lib/pq"
 )
 
 type Storage interface {
 	TeamStorage
+	PlayerStorage
 }
 
 type TeamStorage interface {
@@ -18,6 +20,10 @@ type TeamStorage interface {
 	FindTeamById(int) (*Team, error)
 	DeleteTeam(int) error
 	UpdateTeam(*Team, int) error
+}
+
+type PlayerStorage interface {
+	CreatePlayer(*Player) error
 }
 
 type PostgresStore struct {
@@ -159,6 +165,15 @@ func (s *PostgresStore) UpdateTeam(req *Team, id int) error {
 	}
 	if res < 1 {
 		return fmt.Errorf("team id's %d is not found ", id)
+	}
+	return nil
+}
+
+func (s *PostgresStore) CreatePlayer(req *Player) error {
+	query := "INSERT INTO players(id,team_id,name,number,height,birthdate) VALUES ($1,$2,$3,$4,$5,$6);"
+	_, err := s.db.Exec(query, uuid.New(), req.TeamID, req.Name, req.Number, req.Height, req.Birthdate.String())
+	if err != nil {
+		return err
 	}
 	return nil
 }
