@@ -33,7 +33,7 @@ func (s *APIServer) Run() {
 
 func (s *APIServer) handleAPI(w http.ResponseWriter, r *http.Request) error {
 	if r.Method == "GET" {
-		return s.GetAllTeams(w, r)
+		return s.FindAllTeams(w, r)
 	}
 	if r.Method == "POST" {
 		return s.CreateTeam(w, r)
@@ -45,7 +45,7 @@ func (s *APIServer) handleAPIById(w http.ResponseWriter, r *http.Request) error 
 	id := mux.Vars(r)["id"]
 	teamID, _ := strconv.Atoi(id)
 	if r.Method == "GET" {
-		return s.GetTeamById(w, r, teamID)
+		return s.FindTeamById(w, r, teamID)
 	}
 	if r.Method == "DELETE" {
 		return s.DeleteTeam(w, r, teamID)
@@ -56,8 +56,8 @@ func (s *APIServer) handleAPIById(w http.ResponseWriter, r *http.Request) error 
 	return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
 }
 
-func (s *APIServer) GetAllTeams(w http.ResponseWriter, r *http.Request) error {
-	teams, err := s.storage.GetAllTeams()
+func (s *APIServer) FindAllTeams(w http.ResponseWriter, r *http.Request) error {
+	teams, err := s.storage.FindAllTeams()
 	if err != nil {
 		return err
 	}
@@ -78,8 +78,8 @@ func (s *APIServer) CreateTeam(w http.ResponseWriter, r *http.Request) error {
 	return JSONEncode(w, http.StatusCreated, helper.WriteMessageAPI(http.StatusCreated, "Team has been created sucesfully."))
 }
 
-func (s *APIServer) GetTeamById(w http.ResponseWriter, r *http.Request, id int) error {
-	team, err := s.storage.GetTeamById(id)
+func (s *APIServer) FindTeamById(w http.ResponseWriter, r *http.Request, id int) error {
+	team, err := s.storage.FindTeamById(id)
 	if err != nil {
 		return err
 	}

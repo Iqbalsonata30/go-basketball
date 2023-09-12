@@ -14,8 +14,8 @@ type Storage interface {
 
 type TeamStorage interface {
 	CreateTeam(*Team) error
-	GetAllTeams() ([]Team, error)
-	GetTeamById(int) (*Team, error)
+	FindAllTeams() ([]Team, error)
+	FindTeamById(int) (*Team, error)
 	DeleteTeam(int) error
 	UpdateTeam(*Team, int) error
 }
@@ -65,7 +65,7 @@ func (s *PostgresStore) CreateTeam(req *Team) error {
 	return nil
 }
 
-func (s *PostgresStore) GetAllTeams() ([]Team, error) {
+func (s *PostgresStore) FindAllTeams() ([]Team, error) {
 	query := "SELECT id,team_name,gender from teams;"
 	rows, err := s.db.Query(query)
 	if err != nil {
@@ -90,7 +90,7 @@ func (s *PostgresStore) GetAllTeams() ([]Team, error) {
 	return teams, nil
 }
 
-func (s *PostgresStore) GetTeamById(id int) (*Team, error) {
+func (s *PostgresStore) FindTeamById(id int) (*Team, error) {
 	query := "SELECT id,team_name,gender from teams where ID = $1;"
 	result := s.db.QueryRow(query, id)
 	var team Team
