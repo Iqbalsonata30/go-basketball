@@ -75,6 +75,9 @@ func (s *APIServer) handlePlayerAPIByID(w http.ResponseWriter, r *http.Request) 
 	if r.Method == "DELETE" {
         return s.DeletePlayer(w, r, id)
 	}
+    if r.Method == "GET" {
+        return s.FindPlayerByID(w,r,id)
+    }
 	return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
 }
 
@@ -153,6 +156,15 @@ func (s *APIServer) DeletePlayer(w http.ResponseWriter, r *http.Request,id strin
         return err
     }
         return JSONEncode(w,http.StatusOK,helper.WriteMessageAPI(http.StatusOK,"Player has been deleted sucesfully."))
+}
+
+func (s *APIServer) FindPlayerByID(w http.ResponseWriter,r *http.Request,id string) error{
+    player,err := s.storage.FindPlayerById(id)
+    if err != nil{
+        return err
+    }
+    return JSONEncode(w,http.StatusOK,player)
+
 }
 
 func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {

@@ -6,7 +6,7 @@ import (
 
 func main() {
 	store, err := NewPostgresStore()
-	if err != nil {
+    if err != nil {
 		log.Fatal(err)
 	}
 	if err := store.Init(); err != nil {

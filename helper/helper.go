@@ -11,7 +11,7 @@ func WriteMessageAPI(code int, message string) map[string]any {
 
 func Required(datas ...any) error {
 	for _, data := range datas {
-		if data == "" {
+		if data == ""{
 			return fmt.Errorf("you've not fulfilled the required data")
 		}
 	}
