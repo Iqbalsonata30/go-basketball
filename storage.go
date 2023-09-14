@@ -25,6 +25,7 @@ type TeamStorage interface {
 type PlayerStorage interface {
 	CreatePlayer(*Player) error
 	FindAllPlayers() ([]Player, error)
+    DeletePlayer(string) error
 }
 
 type PostgresStore struct {
@@ -204,3 +205,16 @@ func (s *PostgresStore) FindAllPlayers() ([]Player, error) {
 	}
 	return players, err
 }
+func (s *PostgresStore) DeletePlayer(id string) error{
+    pID,err := uuid.Parse(id)
+    if err != nil{
+         return fmt.Errorf("player's id :%v is not found",id)
+    }
+    query := "DELETE FROM players WHERE id = $1";
+    _,err = s.db.Exec(query,pID)
+    if err != nil{
+        return err
+    }
+    return nil  
+}
+

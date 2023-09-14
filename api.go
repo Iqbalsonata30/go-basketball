@@ -28,6 +28,7 @@ func (s *APIServer) Run() {
 	router.HandleFunc("/teams", HandleFunc(s.handleTeamAPI))
 	router.HandleFunc("/teams/{id}", HandleFunc(s.handleTeamAPIById))
 	router.HandleFunc("/players", HandleFunc(s.handlePlayerAPI))
+    router.HandleFunc("/players/{id}",HandleFunc(s.handlePlayerAPIByID))
 
 	log.Printf("server is running on port %v\n", s.address)
 	http.ListenAndServe(s.address, router)
@@ -68,6 +69,15 @@ func (s *APIServer) handlePlayerAPI(w http.ResponseWriter, r *http.Request) erro
 		return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
 	}
 }
+
+func (s *APIServer) handlePlayerAPIByID(w http.ResponseWriter, r *http.Request) error {
+	id := mux.Vars(r)["id"]
+	if r.Method == "DELETE" {
+        return s.DeletePlayer(w, r, id)
+	}
+	return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
+}
+
 
 func (s *APIServer) FindAllTeams(w http.ResponseWriter, r *http.Request) error {
 	teams, err := s.storage.FindAllTeams()
@@ -136,6 +146,13 @@ func (s *APIServer) FindAllPlayers(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 	return JSONEncode(w, http.StatusOK, players)
+}
+func (s *APIServer) DeletePlayer(w http.ResponseWriter, r *http.Request,id string) error {
+    err := s.storage.DeletePlayer(id)
+    if err != nil{
+        return err
+    }
+        return JSONEncode(w,http.StatusOK,helper.WriteMessageAPI(http.StatusOK,"Player has been deleted sucesfully."))
 }
 
 func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {
