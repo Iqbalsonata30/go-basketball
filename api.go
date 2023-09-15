@@ -78,6 +78,9 @@ func (s *APIServer) handlePlayerAPIByID(w http.ResponseWriter, r *http.Request) 
     if r.Method == "GET" {
         return s.FindPlayerByID(w,r,id)
     }
+    if r.Method == "PUT"{
+        return s.UpdatePlayer(w,r,id)
+    }
 	return JSONEncode(w, http.StatusBadRequest, ApiError{Error: "method " + r.Method + " is not allowed"})
 }
 
@@ -166,6 +169,20 @@ func (s *APIServer) FindPlayerByID(w http.ResponseWriter,r *http.Request,id stri
     return JSONEncode(w,http.StatusOK,player)
 
 }
+
+func (s *APIServer) UpdatePlayer(w http.ResponseWriter,r *http.Request,id string) error{
+    req := new(Player)
+    err := json.NewDecoder(r.Body).Decode(req)
+    if err != nil{
+        return err
+    }
+    err = s.storage.UpdatePlayer(req,id)
+    if err != nil{
+        return err
+    }
+    return JSONEncode(w,http.StatusOK,helper.WriteMessageAPI(http.StatusOK,"Player has been updated succesfully"))
+}
+
 
 func JSONEncode(w http.ResponseWriter, statusCode int, v any) error {
 	w.Header().Set("Content-Type", "application/json")

@@ -26,6 +26,7 @@ type PlayerStorage interface {
 	CreatePlayer(*Player) error
 	FindAllPlayers() ([]Player, error)
     FindPlayerById(string) (*Player,error)
+    UpdatePlayer(*Player,string) error
     DeletePlayer(string) error
 }
 
@@ -212,10 +213,15 @@ func (s *PostgresStore) DeletePlayer(id string) error{
          return fmt.Errorf("player's id is not found")
     }
     query := "DELETE FROM players WHERE id = $1";
-    _,err = s.db.Exec(query,pID)
+    resp,err := s.db.Exec(query,pID)
     if err != nil{
         return err
     }
+    res,_ := resp.RowsAffected()
+    if res < 1{
+         return fmt.Errorf("player's id is not found")
+    }
+
     return nil  
 }
 
@@ -234,4 +240,22 @@ func (s *PostgresStore) FindPlayerById(id string) (*Player,error){
         return nil,err
     }
     return &p,nil
+}
+
+func (s *PostgresStore) UpdatePlayer(p *Player,id string) error{
+    pID,err := uuid.Parse(id)
+    if err != nil{
+        return fmt.Errorf("player's id is not found")
+    }
+    query := "UPDATE players SET name = $1,number = $2,height = $3 WHERE id = $4";
+    resp,err := s.db.Exec(query,p.Name,p.Number,p.Height,pID)
+    if err != nil {
+        return err
+    }
+    res,_ := resp.RowsAffected()
+    if res < 1 {
+        return fmt.Errorf("player's id is not found")
+    }
+
+    return nil
 }
