@@ -3,9 +3,12 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/google/uuid"
 	"github.com/iqbalsonata30/go-basketball/helper"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -35,7 +38,29 @@ type PostgresStore struct {
 }
 
 func NewPostgresStore() (*PostgresStore, error) {
-	connStr := "postgres://postgres:secret@localhost:5433/go_basketball?sslmode=disable"
+    err := godotenv.Load()
+    if err != nil{
+        log.Fatal("error loading .env file")
+    }
+
+    mustGetenv := func(k string) string {
+		v := os.Getenv(k)
+		if v == "" {
+			log.Fatalf("Fatal Error in connect_tcp.go: %s environment variable not set.", k)
+		}
+		return v
+	}
+
+	var (
+		dbUser    = mustGetenv("DB_USER")      
+		dbPwd     = mustGetenv("DB_PASS")      
+		dbTCPHost = mustGetenv("INSTANCE_HOST") 
+		dbPort    = mustGetenv("DB_PORT")      
+		dbName    = mustGetenv("DB_NAME")      
+	)
+
+    connStr := fmt.Sprintf("host=%s user=%s password=%s port=%s database=%s sslmode=disable",
+		dbTCPHost, dbUser, dbPwd, dbPort, dbName)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
